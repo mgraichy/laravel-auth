@@ -9,6 +9,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:api');
 
-Route::get('/videos', [VideoController::class, 'getVideos']);
-Route::get('/video', [VideoController::class, 'getVideo']);
-Route::get('/comment', [CommentController::class, 'getcomment']);
+
+Route::middleware('auth:api')->group(function () {
+    Route::get('/videos', [VideoController::class, 'getVideos']);
+    // Route::get('/video', [VideoController::class, 'getVideo']);
+    Route::get('/comment', [CommentController::class, 'getcomment']);
+});
