@@ -18,9 +18,13 @@ return new class extends Migration
                 ->constrained()
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
+            $table->foreignId('client_id')
+                ->nullable()
+                ->constrained(table: 'oauth_clients', column: 'id')
+                ->onUpdate('cascade')
+                ->onDelete('cascade');
             $table->text('title')->nullable();
             $table->string('video')->nullable();
-            // $table->string('autoplay')->nullable();
             $table->string('views')->nullable();
             $table->text('comment')->nullable();
             $table->softDeletes();

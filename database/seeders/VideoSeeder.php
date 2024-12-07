@@ -33,6 +33,7 @@ class VideoSeeder extends Seeder
         $videos = [
             [
                 'user_id' => $user->id,
+                'client_id' => 1,
                 'title' => 'The Birthday Bot',
                 // 'video' => 'https://www.youtube.com/embed/nNjaXpo7RP0?si=DJa4HMNH6tEu5TrJ',
                 'video' => '/videos/bday-bot-540p.mp4',
@@ -43,6 +44,7 @@ class VideoSeeder extends Seeder
             ],
             [
                 'user_id' => $user->id,
+                'client_id' => 1,
                 'title' => 'A Small Town',
                 // 'video' => 'https://www.youtube.com/embed/RzpQjPI0RfM?si=QprCAVHruSMA5-me',
                 'video' => '/videos/town-540p.mp4',
@@ -53,6 +55,7 @@ class VideoSeeder extends Seeder
             ],
             [
                 'user_id' => $user->id,
+                'client_id' => 1,
                 'title' => 'Traffic',
                 // 'video' => 'https://www.youtube.com/embed/T6Y3OcWMUdI?si=y9_RZH9V1TDXsAJ3',
                 'video' => '/videos/traffic-540p.mp4',

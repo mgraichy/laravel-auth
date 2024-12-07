@@ -45,14 +45,6 @@
                                         Log in
                                     </a>
 
-                                    @if (Route::has('register'))
-                                        <a
-                                            href="{{ route('register') }}"
-                                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
-                                        >
-                                            Register
-                                        </a>
-                                    @endif
                                 @endauth
                             </nav>
                         @endif
@@ -173,34 +165,11 @@
             </div>
         </div>
 
-        <script>
-            document.addEventListener("DOMContentLoaded", function() {
-                if (window.axios) {
-                    console.log("Axios is available:", window.axios);
-                } else {
-                    console.error("Axios is not loaded.");
-                }
+        <iframe
+            width="300"
+            height="200"
+            src="http://localhost:5173/videos/town-540p.mp4">
+        </iframe>
 
-                // List all Clients belonging to user:
-                // axios.get('/oauth/clients')
-                //     .then(response => {
-                //         console.log(response.data);
-                //     });
-                // });
-
-                // Create a new client belonging to logged-in user:
-                const data = {
-                    name: "A Client's Client",
-                    redirect: 'http://example.com/callback'
-                };
-                axios.post('/oauth/clients', data)
-                    .then(response => {
-                        console.log(response.data);
-                    })
-                    .catch (response => {
-                        console.log(response);
-                    });
-            });
-        </script>
     </body>
 </html>
