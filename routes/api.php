@@ -11,6 +11,6 @@ Route::get('/user', function (Request $request) {
 
 Route::middleware('auth:api')->group(function () {
     Route::get('/videos', [VideoController::class, 'getVideos']);
-    // Route::get('/video', [VideoController::class, 'getVideo']);
+    Route::get('/video-strings', [VideoController::class, 'getVideoStrings']);
     Route::get('/comments', [CommentController::class, 'getComments']);
 });
