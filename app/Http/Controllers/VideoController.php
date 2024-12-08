@@ -10,25 +10,16 @@ use App\Models\Video;
 
 class VideoController extends Controller
 {
-    public function showVids()
-    {
-        return view('vids');
-    }
-
-    public function getVideos(Request $request, Video $video, $client_id = 1)
+    public function getVideoStrings(Request $request, Video $video)
     {
         try {
-            // $this->fillInDB($faker);
-            // $user = auth()->user();
-            // $user_id = $user->id ?? 1;
-            $clickedId = intval($request->query('id'));
+            $clientId = intval($request->query('client_id'));
 
-            $videos = $video->where('client_id', $client_id)->get();
+            $videoStrings = $video->where('client_id', $clientId)->get();
 
-            $finalVideos = [];
-            foreach ($videos as $vid) {
-                if ($clickedId == $vid->id) continue;
-                $finalVideos[] = [
+            $finalVideoStrings = [];
+            foreach ($videoStrings as $vid) {
+                $finalVideoStrings[] = [
                     'id'        => $vid->id,
                     'title'     => $vid->title,
                     'name'      => $user->name ?? 'M Graichy',
@@ -40,30 +31,32 @@ class VideoController extends Controller
                 ];
             }
 
-            // Must return an object rather than an array to prevent XSS:
-            return response()->json(['data' => $finalVideos]);
+            // We return an object rather than an array to prevent XSS:
+            return response()->json(['data' => $finalVideoStrings]);
         } catch (\Throwable) {
             return response()->json(['error' => 'something went wrong'], 422);
         }
     }
 
-    // See also config/filesystems.php for 'videos':
-    public function store(Request $request, Video $video)
+    public function getVideos(Request $request)
     {
-        // dd(auth()->user());
-        $input = $request->all();
-        Validator::validate($input, [
-            'html_name' => [
-                'required',
-                File::types(['mp4'])
-                    ->min(1024)
-                    ->max(8 * 1024),
-            ],
-        ]);
+        $fileName = $request->query('file');
+        $dir = dirname(__DIR__, 3).'/videos';
+        $file = $dir.'/'.$fileName;
 
-        $path = Storage::disk('videos')->putFile('', $request->file('html_name'));
+        if (!file_exists($file)) {
+            http_response_code(404);
+            exit;
+        }
 
-        return view('vids');
+        header('Content-Type: video/mp4');
+        header('Content-Length: ' . filesize($file));
+        header('Content-Disposition: inline; filename="' . basename($file) . '"');
+        header('Cache-Control: private, max-age=86400, must-revalidate');
+        header('Access-Control-Allow-Origin: http://localhost:5173');
+        header('Access-Control-Allow-Credentials: true');
+        header('Access-Control-Allow-Methods: GET, OPTIONS');
+        readfile($file);
+        exit;
     }
-
 }
