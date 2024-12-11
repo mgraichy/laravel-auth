@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Validation\Rules\File;
 use App\Models\Video;
-
+use Carbon\CarbonImmutable;
 class VideoController extends Controller
 {
+    protected array $whitelist = ['http://localhost:5173'];
+
     public function getVideoStrings(Request $request, Video $video)
     {
         try {
@@ -40,23 +39,51 @@ class VideoController extends Controller
 
     public function getVideos(Request $request)
     {
+        $url = request()->headers->get('referer');
+        $urlLength = strlen($url) - 1;
+        if ($url[$urlLength] == '/') {
+            $url = substr($url, 0, -1);
+        }
+
+        if (!in_array($url, $this->whitelist)) {
+            return response(null, 401);
+        }
+
         $fileName = $request->query('file');
         $dir = dirname(__DIR__, 3).'/videos';
         $file = $dir.'/'.$fileName;
 
         if (!file_exists($file)) {
-            http_response_code(404);
-            exit;
+            return response(null, 404);
         }
 
-        header('Content-Type: video/mp4');
-        header('Content-Length: ' . filesize($file));
-        header('Content-Disposition: inline; filename="' . basename($file) . '"');
-        header('Cache-Control: private, max-age=86400, must-revalidate');
-        header('Access-Control-Allow-Origin: http://localhost:5173');
-        header('Access-Control-Allow-Credentials: true');
-        header('Access-Control-Allow-Methods: GET, OPTIONS');
-        readfile($file);
-        exit;
+        $fileModificationTime = filemtime($file);
+        $lastModified = CarbonImmutable::createFromTimestamp($fileModificationTime)->format('D, d M Y H:i:s') . ' GMT';
+        $entityTag = hash_file('sha256', $file);
+        $expires = CarbonImmutable::now('UTC')->addDay()->format('D, d M Y H:i:s') . ' GMT';
+
+        if ($request->header('If-Modified-Since') === $lastModified ||
+            $request->header('If-None-Match') === $entityTag
+        ) {
+                return response(null, 304);
+        }
+
+        $headers = [
+            'Content-Type' => 'video/mp4',
+            'Content-Length' => filesize($file),
+            'Content-Disposition' => 'inline; filename="' . basename($file) . '"',
+            // Caching on the browser (only):
+            'Cache-Control' => 'private, max-age=86400, must-revalidate',
+            'Last-Modified' => $lastModified,
+            'ETag' => '$entityTag',
+            // Older browsers:
+            'Expires' => $expires,
+            // CORS:
+            'Access-Control-Allow-Origin' => $url,
+            'Access-Control-Allow-Credentials' => true,
+            'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+        ];
+
+        return response()->file($file, $headers);
     }
 }
