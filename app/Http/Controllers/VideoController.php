@@ -7,7 +7,7 @@ use App\Models\Video;
 use Carbon\CarbonImmutable;
 class VideoController extends Controller
 {
-    protected array $whitelist = ['http://localhost:5173'];
+    protected array $whitelist = ['http://localhost:5173', 'https://localhost:5173'];
 
     public function getVideoStrings(Request $request, Video $video)
     {
@@ -62,10 +62,19 @@ class VideoController extends Controller
         $entityTag = hash_file('sha256', $file);
         $expires = CarbonImmutable::now('UTC')->addDay()->format('D, d M Y H:i:s') . ' GMT';
 
-        if ($request->header('If-Modified-Since') === $lastModified ||
-            $request->header('If-None-Match') === $entityTag
+        $requestHeader = getAllHeaders();
+
+        if ($request->header('If-None-Match') === $entityTag ||
+            $request->header('If-Modified-Since') === $lastModified
         ) {
-                return response(null, 304);
+            return response(null, 304)->withHeaders([
+                // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match:
+                'Cache-Control' => 'private, max-age=86400, must-revalidate, immutable',
+                'ETag' => $entityTag,
+                // Older browsers:
+                'Expires' => $expires,
+                'Vary' => 'Origin',
+            ]);
         }
 
         $headers = [
@@ -73,15 +82,16 @@ class VideoController extends Controller
             'Content-Length' => filesize($file),
             'Content-Disposition' => 'inline; filename="' . basename($file) . '"',
             // Caching on the browser (only):
-            'Cache-Control' => 'private, max-age=86400, must-revalidate',
+            'Cache-Control' => 'public, max-age=86400', // must-revalidate, immutable',
             'Last-Modified' => $lastModified,
-            'ETag' => '$entityTag',
+            'ETag' => $entityTag,
             // Older browsers:
             'Expires' => $expires,
             // CORS:
             'Access-Control-Allow-Origin' => $url,
             'Access-Control-Allow-Credentials' => true,
             'Access-Control-Allow-Methods' => 'GET, OPTIONS',
+            'Vary' => 'Origin',
         ];
 
         return response()->file($file, $headers);
