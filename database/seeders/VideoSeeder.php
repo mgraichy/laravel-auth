@@ -2,10 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
 class VideoSeeder extends Seeder
@@ -40,7 +39,7 @@ class VideoSeeder extends Seeder
                 'views' => '930K',
                 'comment' => fake()->paragraphs(3, true),
                 'created_at' => '2024-03-16 17:37:05',
-                'updated_at' => '2024-03-16 17:37:05'
+                'updated_at' => '2024-03-16 17:37:05',
             ],
             [
                 'user_id' => $user->id,
@@ -51,7 +50,7 @@ class VideoSeeder extends Seeder
                 'views' => '32K',
                 'comment' => fake()->paragraphs(3, true),
                 'created_at' => '2024-03-16 17:37:05',
-                'updated_at' => '2024-03-16 17:37:05'
+                'updated_at' => '2024-03-16 17:37:05',
             ],
             [
                 'user_id' => $user->id,
@@ -62,12 +61,10 @@ class VideoSeeder extends Seeder
                 'views' => '23K',
                 'comment' => fake()->paragraphs(3, true),
                 'created_at' => '2024-03-16 17:37:05',
-                'updated_at' => '2024-03-16 17:37:05'
-            ]
+                'updated_at' => '2024-03-16 17:37:05',
+            ],
         ];
 
         return $videos;
     }
-
-
 }

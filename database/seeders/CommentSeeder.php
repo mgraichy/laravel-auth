@@ -2,11 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
-
-use Illuminate\Support\Facades\DB;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class CommentSeeder extends Seeder
 {
@@ -17,8 +15,8 @@ class CommentSeeder extends Seeder
     {
         $numberOfVideos = DB::table('videos')->select('id')->get()->count() + 1;
         $comments = [];
-        for ($videoId = 1; $videoId < $numberOfVideos; ++$videoId) {
-            for ($numberCommentsPerVideo = 0; $numberCommentsPerVideo < 5; ++$numberCommentsPerVideo) {
+        for ($videoId = 1; $videoId < $numberOfVideos; $videoId++) {
+            for ($numberCommentsPerVideo = 0; $numberCommentsPerVideo < 5; $numberCommentsPerVideo++) {
                 $pic = random_int(1, 100);
                 $comments[] = [
                     'video_id' => $videoId,

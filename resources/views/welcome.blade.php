@@ -164,12 +164,5 @@
                 </div>
             </div>
         </div>
-
-        <iframe
-            width="300"
-            height="200"
-            src="http://localhost:5173/videos/town-540p.mp4">
-        </iframe>
-
     </body>
 </html>
