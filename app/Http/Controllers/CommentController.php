@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Comment;
-
 use Illuminate\Http\Request;
 
 class CommentController extends Controller
@@ -15,10 +14,9 @@ class CommentController extends Controller
             $comments = $comment->where('video_id', $id)->get();
 
             $finalComments = [];
-            foreach ($comments as $comment)
-            {
+            foreach ($comments as $comment) {
                 $finalComments[] = [
-                    'name'    => $comment->name,
+                    'name' => $comment->name,
                     'comment' => $comment->comment,
                     'picture' => $comment->picture,
                     'date' => $comment->created_at,

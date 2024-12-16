@@ -2,15 +2,50 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Models\Video;
 use Carbon\CarbonImmutable;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Log;
+
 class VideoController extends Controller
 {
-    protected array $whitelist = ['http://localhost:5173', 'https://localhost:5173'];
+    protected array $whitelist = [
+        'https://vuetube.mgraichy.com',
+        'https://dev.third-party-website',
+        'http://localhost:5173',
+        'https://localhost:5173',
+    ];
 
-    public function getVideoStrings(Request $request, Video $video)
+    protected function isInWhitelist(): ?string
     {
+        Log::channel('debug')->info(__METHOD__ . '()');
+        $url = request()->headers->get('referer');
+        if (!is_string($url)) {
+            return null;
+        }
+
+        $urlLength = strlen($url) - 1;
+        if ($url[$urlLength] == '/') {
+            $url = substr($url, 0, -1);
+        }
+
+        if (!in_array($url, $this->whitelist)) {
+            return null;
+        }
+
+        return $url;
+    }
+
+    public function getVideoStrings(Request $request, Video $video): JsonResponse|Response
+    {
+        Log::channel('debug')->info(__METHOD__ . '()');
+        if(!$this->isInWhitelist()) {
+            return response(null, 401);
+        }
+
         try {
             $clientId = intval($request->query('client_id'));
 
@@ -19,14 +54,14 @@ class VideoController extends Controller
             $finalVideoStrings = [];
             foreach ($videoStrings as $vid) {
                 $finalVideoStrings[] = [
-                    'id'        => $vid->id,
-                    'title'     => $vid->title,
-                    'name'      => $user->name ?? 'M Graichy',
-                    'initials'  => $user->name[0] ?? 'M',
-                    'comment'   => $vid->comment,
-                    'src'       => $vid->video,
-                    'views'     => $vid->views,
-                    'date'      => $vid->created_at,
+                    'id' => $vid->id,
+                    'title' => $vid->title,
+                    'name' => $user->name ?? 'M Graichy',
+                    'initials' => $user->name[0] ?? 'M',
+                    'comment' => $vid->comment,
+                    'src' => $vid->video,
+                    'views' => $vid->views,
+                    'date' => $vid->created_at,
                 ];
             }
 
@@ -37,15 +72,11 @@ class VideoController extends Controller
         }
     }
 
-    public function getVideos(Request $request)
+    public function getVideos(Request $request): BinaryFileResponse|Response
     {
-        $url = request()->headers->get('referer');
-        $urlLength = strlen($url) - 1;
-        if ($url[$urlLength] == '/') {
-            $url = substr($url, 0, -1);
-        }
-
-        if (!in_array($url, $this->whitelist)) {
+        Log::channel('debug')->info(__METHOD__ . '()');
+        $url = $this->isInWhitelist();
+        if(!$url) {
             return response(null, 401);
         }
 
@@ -58,18 +89,16 @@ class VideoController extends Controller
         }
 
         $fileModificationTime = filemtime($file);
-        $lastModified = CarbonImmutable::createFromTimestamp($fileModificationTime)->format('D, d M Y H:i:s') . ' GMT';
+        $lastModified = CarbonImmutable::createFromTimestamp($fileModificationTime)->format('D, d M Y H:i:s').' GMT';
         $entityTag = hash_file('sha256', $file);
-        $expires = CarbonImmutable::now('UTC')->addDay()->format('D, d M Y H:i:s') . ' GMT';
-
-        $requestHeader = getAllHeaders();
+        $expires = CarbonImmutable::now('UTC')->addDay()->format('D, d M Y H:i:s').' GMT';
 
         if ($request->header('If-None-Match') === $entityTag ||
             $request->header('If-Modified-Since') === $lastModified
         ) {
             return response(null, 304)->withHeaders([
                 // https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match:
-                'Cache-Control' => 'private, max-age=86400, must-revalidate, immutable',
+                'Cache-Control' => 'private, max-age=86400',
                 'ETag' => $entityTag,
                 // Older browsers:
                 'Expires' => $expires,
@@ -80,9 +109,9 @@ class VideoController extends Controller
         $headers = [
             'Content-Type' => 'video/mp4',
             'Content-Length' => filesize($file),
-            'Content-Disposition' => 'inline; filename="' . basename($file) . '"',
+            'Content-Disposition' => 'inline; filename="'.basename($file).'"',
             // Caching on the browser (only):
-            'Cache-Control' => 'public, max-age=86400', // must-revalidate, immutable',
+            'Cache-Control' => 'private, max-age=86400',
             'Last-Modified' => $lastModified,
             'ETag' => $entityTag,
             // Older browsers:
