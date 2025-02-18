@@ -16,8 +16,8 @@ This is the backend. [The frontend is here](https://github.com/mgraichy/vuetube)
 ### Prerequisites
 
 - Node.js (for Vue 3 frontend).
-- PHP and Composer (for Laravel backend).
-- A database (MySQL, PostgreSQL, etc.).
+- PHP 8.2+ and Composer (for Laravel backend).
+- An SQL database (MySQL, PostgreSQL, etc.).
 
 ## License
 
